@@ -10,9 +10,13 @@ using System.Windows;
 
 namespace HealthCheckWpfDemo
 {
-    public class ViewModel: INotifyPropertyChanged
+    public class ViewModel : INotifyPropertyChanged
     {
-        private HealthContext _context;
+        // use _context if you connect MySQL
+        //private HealthContext _context;
+
+        // use initialData if you don't connect MySQL
+        private SeedData initialData;
         private ObservableCollection<TreeNode> nodes = new ObservableCollection<TreeNode>();
         private List<BloodItem> bloodItems;
         private List<CancerItem> cancerItems;
@@ -89,7 +93,7 @@ namespace HealthCheckWpfDemo
                     PropertyChanged(this, new PropertyChangedEventArgs("CancerVisibility"));
             }
         }
-       
+
         public DelegateCommand SelectedItemChangedCommand { get; }
         public DelegateCommand RemoveBloodItemCommand { get; }
         public DelegateCommand AddBloodItemCommand { get; }
@@ -98,9 +102,14 @@ namespace HealthCheckWpfDemo
         public DelegateCommand SelectedTreatmentChangedCommand { get; }
         public ViewModel()
         {
+            /*
             _context = new HealthContext();
             bloodItems = _context.bloodItems.Include(b => b.details).ToList();
             cancerItems = _context.cancerItems.Include(c => c.treatments).ToList();
+            */
+            initialData = new SeedData();
+            bloodItems = initialData.bloodItems;
+            cancerItems = initialData.cancerItems;
             InitTreeView();
             SelectedItemChangedCommand = new DelegateCommand(selectedItemChangedCommandHandler);
             RemoveBloodItemCommand = new DelegateCommand(removeBloodItemCommandHandler);
@@ -125,7 +134,7 @@ namespace HealthCheckWpfDemo
                 pid = 0,
                 name = "癌症检查"
             };
-            List<TreeNode> allNodes = new List<TreeNode>() { blood,cancer };
+            List<TreeNode> allNodes = new List<TreeNode>() { blood, cancer };
             foreach (var item in bloodItems)
             {
                 id++;
@@ -138,7 +147,7 @@ namespace HealthCheckWpfDemo
                 allNodes.Add(_node);
             }
 
-            foreach(var item in cancerItems)
+            foreach (var item in cancerItems)
             {
                 id++;
                 TreeNode _node = new TreeNode()
@@ -150,13 +159,13 @@ namespace HealthCheckWpfDemo
                 allNodes.Add(_node);
             }
 
-            var _Nodes= getNodes(allNodes, 0);
+            var _Nodes = getNodes(allNodes, 0);
             foreach (var node in _Nodes)
                 Nodes.Add(node);
 
         }
 
-        private List<TreeNode> getNodes(List<TreeNode> nodes,int pid)
+        private List<TreeNode> getNodes(List<TreeNode> nodes, int pid)
         {
             var mainNodes = nodes.Where(x => x.pid == pid).ToList();
             var otherNodes = nodes.Where(x => x.pid != pid).ToList();
@@ -196,15 +205,17 @@ namespace HealthCheckWpfDemo
                         CancerCheckItems.Add(item);
                 }
             }
-            
+
         }
 
         private void removeBloodItemCommandHandler(object sender, EventArgs e)
         {
             TreeNode node = Nodes[0].childnodes.Where(x => x.id == selectedTreeNode).SingleOrDefault();
             BloodItem removeItem = bloodItems.Where(x => x.name == node.name).SingleOrDefault();
+            /*
             _context.Entry(removeItem).State = EntityState.Deleted;
             _context.SaveChanges();
+            */
             var node1 = Nodes[0];
             var node2 = Nodes[1];
             node1.childnodes.Remove(node);
@@ -223,12 +234,14 @@ namespace HealthCheckWpfDemo
             string name = Nodes[0].childnodes.Where(x => x.id == selectedTreeNode).SingleOrDefault().name;
             BloodItem item = bloodItems.Where(x => x.name == name).SingleOrDefault();
             item.details = BloodItemDetails.ToList();
-            foreach(var child in item.details)
+            foreach (var child in item.details)
             {
-                MessageBox.Show(child.id.ToString()+":"+child.standard);
+                MessageBox.Show(child.id.ToString() + ":" + child.standard);
             }
+            /*
             _context.Entry(item).State = EntityState.Modified;
             _context.SaveChanges();
+            */
         }
 
         private void resetBloodItemDetailsCommandHandler(object sender, EventArgs e)
